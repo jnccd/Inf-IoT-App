@@ -60,6 +60,11 @@ namespace BluetoothApp
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }
 
+        protected override void OnDestroy()
+        {
+            socc.Close();
+        }
+
         private void ConnectBlue()
         {
             BluetoothAdapter adapter = BluetoothAdapter.DefaultAdapter;
@@ -88,7 +93,7 @@ namespace BluetoothApp
         }
         private async Task SendBlue(string message)
         {
-            if (DateTime.Now - _lastSendTime < TimeSpan.FromSeconds(5))
+            if (DateTime.Now - _lastSendTime < TimeSpan.FromSeconds(0.5))
                 return;
 
             try
