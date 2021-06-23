@@ -4,33 +4,41 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    <Button
-        android:text="Button 0"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:minWidth="24px"
+    android:layout_height="match_parent"
+    android:id="@+id/baseLayout">
+    <LinearLayout
+        android:orientation="horizontal"
+        android:minWidth="25px"
         android:minHeight="25px"
-        android:id="@+id/sendButton"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="80dp"
-        android:layout_marginLeft="60dp"
-        android:layout_marginRight="215.0dp"
-        android:layout_marginBottom="80dp" />
-    <Button
-        android:text="Button 1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/sendButton2"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="80dp"
-        android:layout_marginLeft="204.5dp"
-        android:layout_marginRight="28.5dp"
-        android:layout_marginBottom="80dp" />
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:id="@+id/linearLayout1">
+        <TextView
+            android:text="Connected:"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:id="@+id/connectionText"
+            android:layout_marginRight="10dp" />
+        <Switch
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:enabled="false"
+            android:id="@+id/connectionSwitch" />
+    </LinearLayout>
+    <Button
+        android:text="Toggle Car Lock"
+        android:textSize="28dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/colorAccent"
+        android:id="@+id/sendButton"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"/>
 </RelativeLayout>

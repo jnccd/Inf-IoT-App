@@ -6,6 +6,7 @@ using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.App;
+using Google.Android.Material.Snackbar;
 using Java.Util;
 using System;
 using System.Linq;
@@ -33,8 +34,9 @@ namespace BluetoothApp
 
         static UUID ARDUINO_UUID = UUID.FromString("00001101-0000-1000-8000-00805f9b34fb");
         BluetoothSocket socc = null;
-
-        Random rdm = new Random();
+        bool connected = false;
+        Button sendButton;
+        Switch connectionSwitch;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -45,12 +47,22 @@ namespace BluetoothApp
             // Set our view from the "main" layout resource
             SetContentView(Resource.Layout.activity_main);
 
-            ConnectBlue();
-
-            var sendButton = FindViewById<Button>(Resource.Id.sendButton);
+            sendButton = FindViewById<Button>(Resource.Id.sendButton);
             sendButton.Touch += async (object sender, TouchEventArgs e) => await SendBlue("0");
-            var sendButton2 = FindViewById<Button>(Resource.Id.sendButton2);
-            sendButton2.Touch += async (object sender, TouchEventArgs e) => await SendBlue("1");
+            connectionSwitch = FindViewById<Switch>(Resource.Id.connectionSwitch);
+            connectionSwitch.Click += (object sender, EventArgs e) => {
+                if (connectionSwitch.Checked)
+                    AttemptConnection();
+                else
+                {
+                    socc.Close();
+                    socc = null;
+                    connected = false;
+                    UpdateUI();
+                }
+            };
+
+            AttemptConnection();
         }
 
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)
@@ -62,7 +74,48 @@ namespace BluetoothApp
 
         protected override void OnDestroy()
         {
-            socc.Close();
+            if (socc != null)
+                socc.Close();
+            base.OnDestroy();
+        }
+
+        private void AttemptConnection()
+        {
+            RunOnUiThread(() => connectionSwitch.Enabled = false);
+            try
+            {
+                ConnectBlue();
+
+                connected = true;
+                UpdateUI();
+
+                Snackbar.Make(FindViewById<RelativeLayout>(Resource.Id.baseLayout), "Connected!", Snackbar.LengthShort).Show();
+            }
+            catch
+            {
+                try { socc.Close(); } catch { }
+                socc = null;
+
+                connected = false;
+                UpdateUI();
+
+                Snackbar.Make(FindViewById<RelativeLayout>(Resource.Id.baseLayout), "Connection failed!", Snackbar.LengthShort).Show();
+            }
+            RunOnUiThread(() => connectionSwitch.Enabled = true);
+        }
+
+        private void UpdateUI()
+        {
+            RunOnUiThread(() =>
+            {
+                sendButton.Enabled = connected;
+                connectionSwitch.Checked = connected;
+
+                if (connected)
+                    sendButton.SetBackgroundColor(Android.Graphics.Color.DarkRed);
+                else
+                    sendButton.SetBackgroundColor(Android.Graphics.Color.LightGray);
+            });
         }
 
         private void ConnectBlue()
@@ -81,15 +134,7 @@ namespace BluetoothApp
                 throw new Exception("Named device not found.");
 
             socc = device.CreateRfcommSocketToServiceRecord(ARDUINO_UUID);
-            try
-            {
-                socc.Connect();
-            }
-            catch (Exception ex)
-            {
-                socc.Close();
-                this.ShowAsAlert("UwU we made a fucky wucky (in send)", ex.ToString());
-            }
+            socc.Connect();
         }
         private async Task SendBlue(string message)
         {
