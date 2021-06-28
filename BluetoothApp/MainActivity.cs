@@ -37,6 +37,7 @@ namespace BluetoothApp
         bool connected = false;
         Button sendButton;
         Switch connectionSwitch;
+        DateTime startTime;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -51,6 +52,7 @@ namespace BluetoothApp
             sendButton.Touch += async (object sender, TouchEventArgs e) => await SendBlue("0");
             connectionSwitch = FindViewById<Switch>(Resource.Id.connectionSwitch);
             connectionSwitch.Click += (object sender, EventArgs e) => {
+                startTime = DateTime.Now;
                 if (connectionSwitch.Checked)
                     AttemptConnection();
                 else
@@ -61,6 +63,18 @@ namespace BluetoothApp
                     UpdateUI();
                 }
             };
+
+            var chron = FindViewById<TextView>(Resource.Id.timer);
+            startTime = DateTime.Now;
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    var timeElapsed = DateTime.Now - startTime;
+                    RunOnUiThread(() => chron.Text = $"{timeElapsed.Minutes}:{timeElapsed.Seconds}.{timeElapsed.Milliseconds}");
+                    await Task.Delay(16);
+                }
+            });
 
             AttemptConnection();
         }
