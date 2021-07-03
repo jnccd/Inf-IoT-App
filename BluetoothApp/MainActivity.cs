@@ -39,6 +39,7 @@ namespace BluetoothApp
         Switch connectionSwitch;
         DateTime startTime;
         bool activated = false;
+        bool timerCounting = true;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -58,20 +59,9 @@ namespace BluetoothApp
                 activated = !activated;
             };
             connectionSwitch = FindViewById<Switch>(Resource.Id.connectionSwitch);
-            connectionSwitch.GenericMotion += (object sender, GenericMotionEventArgs e) => {
-                startTime = DateTime.Now;
-                if (connectionSwitch.Checked)
-                    AttemptConnection();
-                else
-                {
-                    socc.Close();
-                    socc = null;
-                    connected = false;
-                    UpdateUI();
-                }
-            };
             connectionSwitch.Click += (object sender, EventArgs e) => {
                 startTime = DateTime.Now;
+                timerCounting = true;
                 if (connectionSwitch.Checked)
                     AttemptConnection();
                 else
@@ -85,9 +75,10 @@ namespace BluetoothApp
 
             var chron = FindViewById<TextView>(Resource.Id.timer);
             startTime = DateTime.Now;
+            timerCounting = true;
             Task.Run(async () =>
             {
-                while (true)
+                while (timerCounting)
                 {
                     var timeElapsed = DateTime.Now - startTime;
                     RunOnUiThread(() => chron.Text = $"{timeElapsed.Minutes}:{timeElapsed.Seconds}.{timeElapsed.Milliseconds}");
@@ -122,11 +113,12 @@ namespace BluetoothApp
                 connected = true;
                 UpdateUI();
 
+                timerCounting = false;
                 Snackbar.Make(FindViewById<RelativeLayout>(Resource.Id.baseLayout), "Connected!", Snackbar.LengthShort).Show();
             }
             catch (Exception ex)
             {
-                this.ShowAsAlert("UwU we made a fucky wucky", ex.ToString());
+                //this.ShowAsAlert("UwU we made a fucky wucky", ex.ToString());
 
                 try { socc.Close(); } catch { }
                 socc = null;
@@ -173,7 +165,7 @@ namespace BluetoothApp
         }
         private async Task SendBlue(string message)
         {
-            if (DateTime.Now - _lastSendTime < TimeSpan.FromSeconds(0.5))
+            if (DateTime.Now - _lastSendTime < TimeSpan.FromSeconds(0.1))
                 return;
 
             try
