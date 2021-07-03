@@ -38,6 +38,7 @@ namespace BluetoothApp
         Button sendButton;
         Switch connectionSwitch;
         DateTime startTime;
+        bool activated = false;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -49,8 +50,26 @@ namespace BluetoothApp
             SetContentView(Resource.Layout.activity_main);
 
             sendButton = FindViewById<Button>(Resource.Id.sendButton);
-            sendButton.Touch += async (object sender, TouchEventArgs e) => await SendBlue("0");
+            sendButton.Touch += async (object sender, TouchEventArgs e) => {
+                if (activated)
+                    await SendBlue("0");
+                else
+                    await SendBlue("1");
+                activated = !activated;
+            };
             connectionSwitch = FindViewById<Switch>(Resource.Id.connectionSwitch);
+            connectionSwitch.GenericMotion += (object sender, GenericMotionEventArgs e) => {
+                startTime = DateTime.Now;
+                if (connectionSwitch.Checked)
+                    AttemptConnection();
+                else
+                {
+                    socc.Close();
+                    socc = null;
+                    connected = false;
+                    UpdateUI();
+                }
+            };
             connectionSwitch.Click += (object sender, EventArgs e) => {
                 startTime = DateTime.Now;
                 if (connectionSwitch.Checked)
@@ -105,8 +124,10 @@ namespace BluetoothApp
 
                 Snackbar.Make(FindViewById<RelativeLayout>(Resource.Id.baseLayout), "Connected!", Snackbar.LengthShort).Show();
             }
-            catch
+            catch (Exception ex)
             {
+                this.ShowAsAlert("UwU we made a fucky wucky", ex.ToString());
+
                 try { socc.Close(); } catch { }
                 socc = null;
 
