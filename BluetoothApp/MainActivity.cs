@@ -40,6 +40,7 @@ namespace BluetoothApp
         DateTime startTime;
         bool activated = false;
         bool timerCounting = true;
+        bool firstTimeUseWarningShown = false;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -62,6 +63,13 @@ namespace BluetoothApp
             connectionSwitch.Click += (object sender, EventArgs e) => {
                 startTime = DateTime.Now;
                 timerCounting = true;
+
+                if (!firstTimeUseWarningShown)
+                {
+                    this.ShowAsAlert("WARNING!", "Dont turn off the relay while driving!");
+                    firstTimeUseWarningShown = true;
+                }
+
                 if (connectionSwitch.Checked)
                     AttemptConnection();
                 else
