@@ -92,10 +92,11 @@ namespace BluetoothApp
                 }
             };
 
-            var chron = FindViewById<TextView>(Resource.Id.timer);
+            //needed for performance testing
+            //var chron = FindViewById<TextView>(Resource.Id.timer);
             startTime = DateTime.Now;
             timerCounting = true;
-            Task.Run(async () =>
+            /* Task.Run(async () =>
             {
                 while (timerCounting)
                 {
@@ -103,7 +104,7 @@ namespace BluetoothApp
                     RunOnUiThread(() => chron.Text = $"{timeElapsed.Minutes}:{timeElapsed.Seconds}.{timeElapsed.Milliseconds}");
                     await Task.Delay(16);
                 }
-            });
+            });*/ 
 
             AttemptConnection();
         }
