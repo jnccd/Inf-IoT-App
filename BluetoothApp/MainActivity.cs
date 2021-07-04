@@ -40,10 +40,19 @@ namespace BluetoothApp
         DateTime startTime;
         bool activated = false;
         bool timerCounting = true;
-        bool firstTimeUseWarningShown = false;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
+             AlertDialog warning = new AlertDialog.Builder(this).SetTitle("WARNING!")
+                   .SetMessage("Dont turn off the relay while driving! \n \nTurn off?")
+                   .SetPositiveButton("Yes", async (s, e) =>
+                   {
+                       await SendBlue("0");
+                       activated = !activated;
+                   }
+                   ).SetNegativeButton("Cancel", (s, e) =>
+                   {
+                   }).SetIcon(Android.Resource.Drawable.IcDialogAlert).Create();
             _lastSendTime = DateTime.Now;
 
             base.OnCreate(savedInstanceState);
@@ -52,23 +61,25 @@ namespace BluetoothApp
             SetContentView(Resource.Layout.activity_main);
 
             sendButton = FindViewById<Button>(Resource.Id.sendButton);
-            sendButton.Touch += async (object sender, TouchEventArgs e) => {
-                if (activated)
-                    await SendBlue("0");
-                else
-                    await SendBlue("1");
-                activated = !activated;
+            sendButton.Touch += async (object sender, TouchEventArgs e) =>
+            {
+                // needed so warning is not shown directly after activating 
+                if (DateTime.Now - _lastSendTime > TimeSpan.FromSeconds(0.5))
+                {
+                    if (activated)
+                        warning.Show();
+                    else
+                    {
+                        await SendBlue("1");
+                        activated = !activated;
+                    }
+                }
             };
             connectionSwitch = FindViewById<Switch>(Resource.Id.connectionSwitch);
             connectionSwitch.Click += (object sender, EventArgs e) => {
                 startTime = DateTime.Now;
                 timerCounting = true;
 
-                if (!firstTimeUseWarningShown)
-                {
-                    this.ShowAsAlert("WARNING!", "Dont turn off the relay while driving!");
-                    firstTimeUseWarningShown = true;
-                }
 
                 if (connectionSwitch.Checked)
                     AttemptConnection();
